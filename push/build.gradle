@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'maven-publish'
+    id 'signing'
 }
 
 task androidSourcesJar(type: Jar) {
@@ -25,13 +26,14 @@ artifacts {
 project.afterEvaluate {
     publishing {
         publications {
-            release(MavenPublication) {
+            maven(MavenPublication) {
                 from components.release
                 artifact androidSourcesJar // optional sources
+                artifact androidJavadocsJar
 
                 groupId = 'com.github.aratech'
-                artifactId = 'sdks'
-                version = '0.1'
+                artifactId = 'aratech'
+                version = ARTIFACT_VERSION
 
                 pom {
                     name = ''
@@ -65,19 +67,26 @@ project.afterEvaluate {
 
         repositories {
             maven {
-                name = 'myRepo'
-                // to change to the most appropriate repo
-                url = layout.buildDirectory.dir('repo')
+                name = REPOSITORY_NAME
+                url = 'https://api.github.com/repos/' + COMPANY + '/' + REPOSITORY_PROJECT + '/releases/tags/' + ARTIFACT_VERSION
+                credentials {
+                    username = "ash"
+                    password = "pwd"
+                }
             }
         }
     }
 }
 
+//signing {
+//    sign publishing.publications.release
+//}
+
 tasks.register('generateRepo', Zip) {
     def publishTask = tasks.named('publishReleasePublicationToMyrepoRepository')
     from publishTask.map { it.getRepository().getUrl() }
-    into 'mylibrary'
-    archiveFileName.set('mylibrary.zip')
+    into 'aratechLibrary'
+    archiveFileName.set('aratechLibrary.zip')
 }
 
 android {
